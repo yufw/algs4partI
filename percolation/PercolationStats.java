@@ -1,15 +1,18 @@
 /**
  * Created by yufw on 2015/5/3.
  */
+
+import edu.princeton.cs.algs4.StdRandom;
+import edu.princeton.cs.algs4.StdStats;
+
 public class PercolationStats {
     public PercolationStats(int N, int T) {
         if (N <= 0 || T <= 0)
             throw new IllegalArgumentException("N and T must be greater than 0");
         e_T = T;
-        frac = new double[T];
+        double [] frac = new double[T];
         for (int times = 0; times < T; times++) {
             Percolation p = new Percolation(N);
-            int counts = 0;
             int i, j;
             while (!p.percolates()) {
                 i = StdRandom.uniform(1, N+1);
@@ -18,32 +21,30 @@ public class PercolationStats {
                     continue;
                 else {
                     p.open(i, j);
-                    counts++;
                 }
             }
-            double f = (double) counts / (N*N);
+            double f = (double) p.numberOfOpenSites() / (N*N);
             frac[times] = f;
         }
+        u = StdStats.mean(frac);
+        sigma = StdStats.stddev(frac);
     }
     public double mean() {
-        return StdStats.mean(frac);
+        return u;
     }
     public double stddev() {
-        return StdStats.stddev(frac);
+        return sigma;
     }
     public double confidenceLo() {
-        double u = mean();
-        double sigma = stddev();
         return (u-1.96*sigma/Math.sqrt(e_T));
     }
     public double confidenceHi() {
-        double u = mean();
-        double sigma = stddev();
         return (u+1.96*sigma/Math.sqrt(e_T));
     }
 
-    private double[] frac;
     private int e_T;
+    private double u;
+    private double sigma;
 
     public static void main(String[] args) {
         int N = Integer.parseInt(args[0]);
