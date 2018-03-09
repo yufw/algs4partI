@@ -1,5 +1,6 @@
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import edu.princeton.cs.algs4.StdRandom;
 
 /**
  * Created by yufw on 2015/5/5.
@@ -19,7 +20,7 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
     }
     public void enqueue(Item item) {
         if (item == null)
-            throw new NullPointerException();
+            throw new IllegalArgumentException();
         if (N == rq.length)
             resize(2 * rq.length);
         rq[N++] = item;
