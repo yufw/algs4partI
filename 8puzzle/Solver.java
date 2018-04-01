@@ -1,66 +1,75 @@
+import edu.princeton.cs.algs4.In;
+import edu.princeton.cs.algs4.MinPQ;
+import edu.princeton.cs.algs4.StdOut;
+
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 
 /**
  * Created by yufw on 2015/5/11.
  */
 public class Solver {
-    private class ManhattanComparator implements Comparator<Node> {
-        public int compare(Node x, Node y) {
-            int px = (x.board.manhattan()+x.mvs);
-            int py = (y.board.manhattan()+y.mvs);
-            return Integer.compare(px, py);
-        }
-    }
+    private boolean solvable;
+    private int steps;
+    private ArrayList<Board> solutions = new ArrayList<>();
 
     private class Node {
         public Board board;
-        public int mvs;
         public Node prev;
+        public int mvs;
+        public int priority;
     }
-    private MinPQ<Node> minPQ = new MinPQ<Node>(new ManhattanComparator());
-    private MinPQ<Node> minPQ2 = new MinPQ<Node>(new ManhattanComparator());
-    private ArrayList<Board> solutions = new ArrayList<Board>();
-    private ArrayList<Board> solutions2 = new ArrayList<Board>();
-    private boolean solvable;
-    private int steps;
+
+    private class ManhattanComparator implements Comparator<Node> {
+        public int compare(Node x, Node y) {
+            return Integer.compare(x.priority, y.priority);
+        }
+    }
+
     public Solver(Board initial) {
         if (initial == null)
-            throw new NullPointerException();
+            throw new IllegalArgumentException("argument is null");
+
+        MinPQ<Node> minPQ = new MinPQ<>(new ManhattanComparator());
+        MinPQ<Node> minPQ2 = new MinPQ<>(new ManhattanComparator());
+
         Node node = new Node();
         node.board = initial;
-        node.mvs = 0;
         node.prev = null;
+        node.mvs = 0;
+        node.priority = node.board.manhattan() + node.mvs;
         minPQ.insert(node);
 
         Node node2 = new Node();
         node2.board = initial.twin();
-        node2.mvs = 0;
         node2.prev = null;
+        node2.mvs = 0;
+        node2.priority = node2.board.manhattan() + node2.mvs;
         minPQ2.insert(node2);
 
         Node x; // initial board
         Node y; // twin board
         do {
             x = minPQ.delMin();
-            solutions.add(x.board);
             for (Board b : x.board.neighbors()) {
-                if (x.prev != null && !(b.equals(x.prev.board)) || x.prev == null) {
+                if (x.prev != null && !b.equals(x.prev.board) || x.prev == null) {
                     Node n = new Node();
                     n.board = b;
-                    n.mvs = x.mvs + 1;
                     n.prev = x;
+                    n.mvs = x.mvs + 1;
+                    n.priority = n.board.manhattan() + n.mvs;
                     minPQ.insert(n);
                 }
             }
             y = minPQ2.delMin();
-            solutions2.add(y.board);
             for (Board b : y.board.neighbors()) {
-                if (y.prev != null && !(b.equals(y.prev.board)) || y.prev == null) {
+                if (y.prev != null && !b.equals(y.prev.board) || y.prev == null) {
                     Node n = new Node();
                     n.board = b;
-                    n.mvs = y.mvs + 1;
                     n.prev = y;
+                    n.mvs = y.mvs + 1;
+                    n.priority = n.board.manhattan() + n.mvs;
                     minPQ2.insert(n);
                 }
             }
@@ -70,23 +79,30 @@ public class Solver {
         if (y.board.isGoal()) {
             solvable = false;
             steps = -1;
+            solutions = null;
         } else {
             solvable = true;
             steps = x.mvs;
+            while (x != null) {
+                solutions.add(x.board);
+                x = x.prev;
+            }
+            Collections.reverse(solutions);
         }
     }
+
     public boolean isSolvable() {
         return solvable;
     }
+
     public int moves() {
         return steps;
     }
+
     public Iterable<Board> solution() {
-        if (isSolvable())
-            return solutions;
-        else
-            return null;
+        return solutions;
     }
+
     public static void main(String[] args) {
         // create initial board from file
         In in = new In(args[0]);

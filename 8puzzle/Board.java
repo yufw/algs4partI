@@ -1,12 +1,14 @@
+import edu.princeton.cs.algs4.StdRandom;
+
 import java.util.ArrayList;
 
 /**
  * Created by yufw on 2015/5/11.
  */
 public class Board {
-    private int dim;
-    private int blocks[][];
-    private int row;
+    private final int dim;
+    private final int blocks[][];
+    private int row = -1;
 
     public Board(int[][] blocks) {
         dim = blocks.length;
@@ -14,17 +16,12 @@ public class Board {
         for (int i = 0; i < dim; i++)
             for (int j = 0; j < dim; j++)
                 this.blocks[i][j] = blocks[i][j];
-
-        while (true) {
-            row = StdRandom.uniform(0, dim);
-            if (blocks[row][0] != 0 && blocks[row][1] != 0)
-                break;
-        }
     }
 
     public int dimension() {
         return dim;
     }
+
     public int hamming() {
         int result = 0;
         for (int i = 0; i < dim; i++) {
@@ -35,6 +32,7 @@ public class Board {
         }
         return result;
     }
+
     public int manhattan() {
         int result = 0;
         for (int i = 0; i < dim; i++) {
@@ -48,6 +46,7 @@ public class Board {
         }
         return result;
     }
+
     public boolean isGoal() {
         for (int i = 0; i < dim; i++)
             for (int j = 0; j < dim; j++)
@@ -58,7 +57,16 @@ public class Board {
         else
             return false;
     }
+
     public Board twin() {
+        if (row == -1) {
+            while (true) {
+                row = StdRandom.uniform(0, dim);
+                if (blocks[row][0] != 0 && blocks[row][1] != 0)
+                    break;
+            }
+        }
+
         int[][] twin_blocks = new int[dim][dim];
         for (int i = 0; i < dim; i++)
             for (int j = 0; j < dim; j++)
@@ -67,9 +75,10 @@ public class Board {
         int temp = twin_blocks[row][0];
         twin_blocks[row][0] = twin_blocks[row][1];
         twin_blocks[row][1] = temp;
-        Board twinBoard = new Board(twin_blocks);
-        return twinBoard;
+
+        return new Board(twin_blocks);
     }
+
     public boolean equals(Object y) {
         if (y == null)
             return false;
@@ -85,23 +94,25 @@ public class Board {
                     return false;
         return true;
     }
+
     public Iterable<Board> neighbors() {
         int iBlank = 0;
         int jBlank = 0;
-        boolean find = false;
-        for (iBlank = 0; iBlank < dim; iBlank++) {
-            if (find)
+        boolean found = false;
+        for (int i = 0; i < dim; i++) {
+            if (found)
                 break;
-            for (jBlank = 0; jBlank < dim; jBlank++) {
-                if (blocks[iBlank][jBlank] == 0) {
-                    find = true;
+            for (int j = 0; j < dim; j++) {
+                if (blocks[i][j] == 0) {
+                    found = true;
+                    iBlank = i;
+                    jBlank = j;
                     break;
                 }
             }
         }
-        iBlank--;
 
-        ArrayList<Board> neigh = new ArrayList<Board>();
+        ArrayList<Board> neigh = new ArrayList<>();
 
         if (jBlank-1 >= 0) {
             int[][] neighBlocks = new int[dim][dim];
@@ -141,6 +152,7 @@ public class Board {
         }
         return neigh;
     }
+
     public String toString() {
         String result = "";
         result += (dim + "\n");
